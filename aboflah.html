@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700&display=swap" rel="stylesheet">
+  <title>AboFlah Celebration</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box }
+   body {
+  zoom: 67%;
+}
+ html, body {
+      width: 100vw; height: 100vh;
+      overflow: hidden;
+      background: #f9f9f9;
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Overlay */
+   #start-overlay {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  transition: opacity 1s ease-in-out, transform 1s ease-in-out;
+}
+
+#start-overlay.fade-out {
+  opacity: 0;
+  transform: scale(1.1);
+  pointer-events: none;
+}
+
+/* your existing avatar rules */
+.channel-header .avatar {
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* updated container and auto-margin rules */
+.channel-header {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  padding: 60px;
+  border-radius: 24px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  z-index: 5;
+
+  /* 1) center everything by default */
+  justify-content: center;
+}
+
+/* 2) push title/count to the right of the left avatar */
+.channel-header > .avatar:first-child {
+  margin-right: 60px;
+}
+
+/* 3) push title/count to the left of the right avatar */
+.channel-header > .avatar:last-child {
+  margin-left: 60px;
+}
+
+/* your existing info styles */
+.channel-info h1 {
+  font-size: 72px;
+  color: #333;
+}
+
+.sub-count {
+  margin-top: 15px;
+  font-size: 54px;
+  color: #666;
+  text-align:center;
+}
+
+
+
+    #confetti-canvas {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    #fireworks {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: url('thanks.gif') center center / cover no-repeat;
+      opacity: 0;
+      transition: opacity 1s ease-in;
+      z-index: 8;
+      pointer-events: none;
+    }
+
+    #congrats {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(1);
+      font-size: 5rem;
+      font-weight: bold;
+      color: #B59410;
+      font-family: 'Cairo', sans-serif;
+      opacity: 0;
+      letter-spacing: 0.25em;
+      white-space: nowrap;
+      z-index: 99;
+    }
+
+    @keyframes heartfeltBounce {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); }
+      30% { transform: translate(-50%, -50%) scale(1.2); }
+      50% { transform: translate(-50%, -50%) scale(1.1); }
+      70% { transform: translate(-50%, -50%) scale(1.3); }
+    }
+
+    .heartfelt-glow {
+      animation: heartfeltBounce 1.2s ease-in-out infinite;
+    }
+
+    audio {
+      position:absolute; width:1px; height:1px;
+      opacity:0; overflow:hidden;
+    }
+
+    /* === Gallery Animation === */
+/* Gallery container: 5 columns, auto rows, fixed max height for 3 rows */
+/* Gallery container: 5 columns, auto rows, fixed max height for 3 rows */
+/* ====== CSS ====== */
+#gallery {
+  position: absolute;
+  top: 0; left: 0;
+  margin: 30px;
+  border-collapse: collapse;
+  visibility: hidden;
+  z-index: 60;            /* above overlay */
+}
+#gallery.show {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 0.5s ease-in;
+}
+#gallery td {
+  padding: 5px;
+  width: calc((100vw - 60px - 40px) / 5);
+}
+#gallery video,
+#gallery #img1,
+#gallery #img2 {
+  display: block;
+  width: 550px;   /* fixed width for both images and videos */
+  height: 670px;  /* fixed height for uniformity */
+  object-fit: cover; /* crop if needed */
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  opacity: 0;
+  margin-left: auto;
+  margin-right: auto;
+  animation: fadeIn 1s ease forwards;
+}
+/* individual spacing */
+
+/* one-by-one fadeIn */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+
+#thanksMessage {
+  position: absolute;
+  top: calc(50% + 80px); /* slightly below the bouncing text */
+  left: 50%;
+  margin-top: 50px;
+  transform: translateX(-50%);
+  font-size: 2rem;
+  font-weight: 600;
+  color: #B59410;
+  font-family: 'Cairo', sans-serif;
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+  white-space: nowrap;
+  z-index: 99;
+}
+
+#congrats,
+#thanksMessage {
+  background: rgba(1, 1, 1, 1); /* translucent black */
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  backdrop-filter: blur(4px); /* optional: glass effect */
+}
+
+
+#celebrationImage {
+  position: absolute;
+  top: 250px;           /* adjust up/down as you like */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 98;
+  width:900px;
+  height:300px;
+    transition: opacity 1s ease-in-out;
+
+}
+
+
+#celebrationImage.show {
+  opacity: 1;
+}
+
+/* === Second Image === */
+#followImage {
+  position: absolute;
+  top: 990px;           /* adjust this to wherever you want it below the first */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;         /* above other elements */
+  width: 900px;
+  height: 300px;
+  opacity: 0;           /* start hidden */
+  transition: opacity 1s ease-in-out;
+}
+
+#followImage.show {
+  opacity: 1;
+}
+
+
+.thank-word {
+  position: absolute;
+  font-size: 3rem;
+  font-family: 'Cairo', sans-serif;
+  color: #FFD700;
+  text-shadow: 0 0 5px black;
+  opacity: 0;
+  white-space: nowrap;
+  animation: flyIn 5s ease forwards;
+  pointer-events: none;
+  z-index: 150;
+}
+
+@keyframes flyIn {
+  0% {
+    transform: translateY(50px) scale(0.8);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-100px) scale(1);
+    opacity: 0;
+  }
+}
+
+/* For note1: 21 characters */
+#note {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  font-family: 'Cairo', sans-serif;
+  font-size: 2rem;
+  font-weight: bold;
+  color: red;
+  white-space: nowrap;
+  border-right: 2px solid red; /* typing cursor */
+  overflow: hidden;
+  width: 0;
+  user-select: none;
+  z-index: 9999;
+  opacity: 0;
+  transition: opacity 1s ease;
+  animation: typing21 3s steps(21, end) forwards, blinkCaret 0.75s step-end infinite;
+}
+
+@keyframes typing21 {
+  from { width: 0; }
+  to { width: 28ch; }
+}
+
+/* For note2: 53 characters */
+#note2 {
+  position: fixed;
+  top: 60px;
+  right: 20px;
+  font-family: 'Cairo', sans-serif;
+  font-size: 2rem;
+  font-weight: bold;
+  color: red;
+  white-space: nowrap;
+  border-right: 2px solid red;
+  overflow: hidden;
+  width: 0;
+  user-select: none;
+  z-index: 9999;
+  opacity: 1;
+  animation: typing53 5s steps(53, end) forwards, blinkCaret 0.75s step-end infinite;
+}
+
+@keyframes typing53 {
+  from { width: 0; }
+  to { width: 147ch; }
+}
+
+@keyframes blinkCaret {
+  50% { border-color: transparent; }
+  100% { border-color: red; }
+}
+
+.fade-out {
+  animation: fadeOut 2s ease forwards;
+  animation-delay: 11s;
+}
+
+.fade-out-119 {
+  animation: fadeOut 2s ease forwards;
+  animation-delay: 134;
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+  }
+}
+
+.gift-box {
+  position: relative;
+  width: 90%;
+  height: 90%;
+  background: linear-gradient(to bottom, #cc0000, #990000);
+  border-radius: 10px;
+  box-shadow: 0 0 40px #ff1a1a;
+  cursor: pointer;
+  animation: bounce 10s infinite ease-in-out;
+  transform-style: preserve-3d;
+}
+
+.lid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 40px;
+  background: linear-gradient(to bottom, #ff3333, #cc0000);
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  transform-origin: top center;
+  transition: transform 0.6s ease;
+  z-index: 3;
+}
+
+.ribbon {
+  position: absolute;
+  background: gold;
+  transition: all 10s ease-in-out;
+  z-index: 4;
+}
+
+.ribbon.horizontal {
+  width: 100%;
+  height: 20px;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+  border-radius: 5px;
+}
+
+.ribbon.vertical {
+  width: 20px;
+  height: 100%;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  border-radius: 5px;
+}
+
+.untied.horizontal {
+  width: 0;
+  opacity: 0;
+}
+
+.untied.vertical {
+  height: 0;
+  opacity: 0;
+}
+
+.sparkles {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 30px;
+  height: 30px;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  animation: bounce 10s infinite ease-in-out;
+  z-index: 10; /* above ribbon */
+}
+
+.sparkles::before {
+  content: "🎀";
+  font-size: 250px;
+  position: fixed ;
+  top: -120px;
+  left: -155px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.sparkles.animate::before {
+  animation: burst 10s ease-out forwards;
+  opacity: 1;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: scale(1) translateY(0); }
+  50%      { transform: scale(1.05) translateY(-5px); }
+}
+
+@keyframes burst {
+  0%   { transform: scale(0.5); opacity: 1; }
+  80%  { transform: scale(1); opacity: 1; }
+  120% { transform: scale(1); opacity: 0; top: -80px; left: -1200px; }
+}
+
+
+
+.hidden-img {
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+}
+
+
+  </style>
+</head>
+<body>
+
+<div id="start-overlay">
+  <div class="gift-box" id="giftBox">
+    <div class="lid" id="lid"></div>
+    <div class="ribbon horizontal" id="ribbonH"></div>
+    <div class="ribbon vertical" id="ribbonV"></div>
+    <div class="sparkles" id="sparkles"></div>
+  </div>
+</div>
+
+<audio id="popSound" src="Gift.mp3" preload="auto"></audio>
+
+
+<div id="note">ملاحظة: بعد البدء رجاءً انتظر ١١ ثانية  </div> <div id="note2" style="opacity: 0;">❤ ملاحظة: يرجى الانتظار، هناك مفاجأة ثانية بعد انتهاء هذا العد التنازلي . بعد هذا، أرجوك أن تستمع إلى نهاية الموسيقى وتذكر بدايتك حتى الآن وأنت تشاهد المقاطع. تذكر نفسك : <span id="note2-timer">134</span> ثانية </div>
+  <div class="channel-header">
+    <img src="AboFlah.jpg" alt="AboFlah Logo" class="avatar">
+    <div class="channel-info">
+      <h1>AboFlah - GAMES \فله </h1>
+      <div class="sub-count" id="subCount">0 subscribers</div>
+    </div>
+    <img src="Original.png" alt="AboFlah Right" class="avatar right-avatar">
+
+  </div>
+
+  <audio id="bgAudio"   src="Cinematic.mp3" loop playsinline></audio>
+  <audio id="fireAudio" src="Motion.mp3"></audio>
+  <audio id="cheerAudio" src="TheKing.mp3"></audio>
+
+  <canvas id="confetti-canvas"></canvas>
+  <div id="fireworks"></div>
+  <div id="congrats"></div>
+    <div id="thanksMessage">❤❤شكرا على مجهودك و تعبك من اجلنا</div>
+
+<!-- Second image, initially hidden -->
+<img
+  src="AboFlahOriginal.png"
+  alt="Extra Celebration"
+  id="followImage"
+  class="hidden-img"
+/>
+
+
+<!-- ========= HTML ========= -->
+<table id="gallery" class="hidden">
+  <tbody>
+   
+    
+      <tr>
+      <td><video src="AboFlah.mp4"  muted autoplay loop playsinline></video></td>
+      <td><video src="AboFlah1.mp4" muted autoplay loop playsinline></video></td>
+      <td><video src="AboFlah2.mp4" muted autoplay loop playsinline></video></td>
+      <td><video src="AboFlah3.mp4" muted autoplay loop playsinline></video></td>
+      <td><video src="AboFlah4.mp4" muted autoplay loop playsinline></video></td>
+      </tr>
+      <tr>
+      <td><video src="AboFlah5.mp4" muted autoplay loop playsinline></video></td>
+      <td><video src="AboFlah6.mp4" muted autoplay loop playsinline></video></td>
+      <td><video src="AboFlah7.mp4" muted autoplay loop playsinline></video></td>
+      <td><video src="AboFlah8.mp4"  muted autoplay loop playsinline></video></td>
+      <td><video src="AboFlah9.mp4"  muted autoplay loop playsinline></video></td>
+
+      </tr>
+      
+  
+    </tr>
+  </tbody>
+</table>
+
+<img src="Original1.png"
+     alt="Celebration"
+     id="celebrationImage"
+     class="hidden-img">
+
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <script>
+const TARGET   = 50_000_000;
+const DURATION = 137000;
+const DELAY    = 10700;
+let started = false;
+
+const subElem     = document.getElementById('subCount');
+const bgAudio     = document.getElementById('bgAudio');
+const fireAudio   = document.getElementById('fireAudio');
+const cheerAudio  = document.getElementById('cheerAudio');
+cheerAudio.loop = true;
+
+const fireworksEl = document.getElementById('fireworks');
+const confCanvas  = document.getElementById('confetti-canvas');
+const congratsEl  = document.getElementById('congrats');
+const gallery     = document.getElementById('gallery');
+
+const confettiIns = confCanvas
+  ? window.confetti.create(confCanvas, { resize: true })
+  : null;
+
+function fmt(n) {
+  return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+document.getElementById('giftBox').addEventListener('click', () => {
+  // Untie ribbons
+  document.getElementById('ribbonH').classList.add('untied');
+  document.getElementById('ribbonV').classList.add('untied');
+
+  // Lid flip
+  const lid = document.getElementById('lid');
+  if (lid) lid.style.transform = 'rotateX(-100deg) translateY(-20px)';
+
+  // Trigger sparkle burst once on click
+  const sparkles = document.getElementById('sparkles');
+  if (sparkles) {
+    sparkles.classList.remove('animate'); // reset animation
+    void sparkles.offsetWidth;             // trigger reflow
+    sparkles.classList.add('animate');    // start burst animation
+  }
+
+  // Play pop sound (if exists)
+  const popSound = document.getElementById('popSound');
+  if (popSound) popSound.play().catch(() => {});
+
+  // Start fade out and note animations **after** 10 seconds
+  setTimeout(() => {
+    const overlay = document.getElementById('start-overlay');
+    if (overlay) {
+      overlay.classList.add('fade-out');
+      setTimeout(() => {
+        overlay.style.display = 'none';
+      }, 10000);
+    }
+  const note = document.getElementById('note');
+    if (note) {
+      note.style.width = '0';
+      note.style.opacity = '1';
+      void note.offsetWidth;
+      note.style.animation = 'typing21 3s steps(20, end) forwards, blinkCaret 0.75s step-end infinite';
+
+      setTimeout(() => {
+        note.style.opacity = '0';
+        note.style.animation = '';
+      }, 11000);
+    }
+
+ 
+      bgAudio.muted = false;
+      bgAudio.volume = 0.5;
+      bgAudio.play();
+      [fireAudio, cheerAudio].forEach(a => {
+        a.load();
+        a.play().catch(() => {}).then(() => {
+          a.pause();
+          a.currentTime = 0;
+        });
+      });
+
+      setTimeout(() => {
+        if (!started) {
+          started = true;
+          animateCount(performance.now());
+        }
+      }, DELAY);
+
+setTimeout(() => {
+  const note2     = document.getElementById('note2');
+  const timerSpan = document.getElementById('note2-timer');
+
+  // 1) Show and type out note2
+  note2.style.opacity   = '1';
+  note2.style.animation = 'none';
+  void note2.offsetWidth;
+  note2.style.animation = 'typing53 3s steps(53, end) forwards, blinkCaret 0.75s step-end infinite';
+
+  // 2) **Schedule fade** by adding the class *now*, CSS will wait 119 s
+  note2.classList.add('fade-out-119');
+
+  // 3) Start the JS countdown just to update the number
+  let timeLeft = 134;
+  timerSpan.textContent = timeLeft;
+  const countdownInterval = setInterval(() => {
+    timeLeft--;
+    timerSpan.textContent = timeLeft;
+    if (timeLeft <= 0) {
+      clearInterval(countdownInterval);
+      // NO fade class here any more
+    }
+  }, 1000);
+}, 13000);
+
+    }, 10000); // Delay to allow ribbon animation
+  });
+
+function celebrate() {
+  // show GIF & play sounds + confetti + text…
+  fireworksEl.style.opacity = 1;
+  fireAudio.currentTime = 0;
+  cheerAudio.currentTime = 0;
+  fireAudio.play();
+  cheerAudio.play();
+  if (confettiIns) {
+    for (let i = 0; i < 5; i++) {
+      confettiIns({ particleCount:200, spread:160, origin:{ x:Math.random(), y:Math.random()*0.6 } });
+    }
+  }
+  typeCongrats("مبروووك على الخمسيييين مليوووون ");
+
+  // ————— Gallery fade-in —————
+  const gallery = document.getElementById('gallery');
+  if (gallery) {
+    // remove the hidden state, show container
+    gallery.classList.remove('hidden');
+    gallery.classList.add('show');
+
+    // animate only the first 15 <img> or <video>
+    const items = Array.from(gallery.querySelectorAll('img, video'))
+                       .slice(0, 15);
+    items.forEach((el, idx) => {
+      setTimeout(() => {
+        el.style.animation = 'fadeIn 1s ease forwards';
+      }, idx * 1000);
+    });
+  }
+
+  startContinuousThanks();
+
+}
+function typeCongrats(text) {
+  congratsEl.style.opacity = 1;
+  congratsEl.textContent = '';
+  let idx = 0;
+
+  const interval = setInterval(() => {
+    congratsEl.textContent += text[idx++];
+    if (idx === text.length) {
+      clearInterval(interval);
+      congratsEl.classList.add('heartfelt-glow');
+
+      // Show the thank-you text
+      const thanks = document.getElementById('thanksMessage');
+      if (thanks) {
+        thanks.style.opacity = 1;
+      }
+
+      // Show the second image
+      const followImg = document.getElementById('followImage');
+      if (followImg) {
+        setTimeout(() => {
+          followImg.classList.remove('hidden-img');
+          followImg.classList.add('show');
+        }, 500);
+      }
+    }
+  }, 200);
+}
+
+
+    function animateCount(startTime) {
+      function step(now) {
+        const elapsed = now - startTime;
+        const prog    = Math.min(elapsed / DURATION, 1);
+        const curr    = Math.floor(prog * TARGET);
+        subElem.textContent = `${fmt(curr)} subscribers`;
+        if (prog < 1) {
+          requestAnimationFrame(step);
+        } else {
+          const fadeDuration = 500;
+          const startVol     = bgAudio.volume;
+          const fadeStart    = performance.now();
+function fadeStep(ts) {
+  const t = (ts - fadeStart) / fadeDuration;
+  if (t < 1) {
+    bgAudio.volume = startVol * (1 - t);
+    requestAnimationFrame(fadeStep);
+} else {
+  bgAudio.pause();
+
+  // show the image immediately at 50M
+  const img = document.getElementById('celebrationImage');
+  if (img) {
+    img.classList.remove('hidden-img');
+    img.classList.add('show');
+  }
+
+  // now kick off the celebration
+  celebrate();
+  document.getElementById('note2').style.display = 'none';
+
+}
+
+}
+
+
+          requestAnimationFrame(fadeStep);
+        }
+      }
+
+      requestAnimationFrame(step);
+    }
+
+function startContinuousThanks() {
+  // Start spawning every 500 ms forever
+  setInterval(() => {
+    spawnSingleThanksWord();
+  }, 500);
+}
+
+function spawnSingleThanksWord() {
+const messages = [
+  // First 15 thank-you messages
+  "شكرا لك 🙏",
+  "ممتنون لك 💖",
+  "يا رائع ✨",
+  "انت مميز 🌟",
+  "كل الحب لك ❤️",
+  "💖 شكرا",
+  "❤️ شكرا",
+  "🌟 ممتنون",
+  "👏👏👏",
+  "جزاك الله خيرا 🤲",
+  "تستاهل كل خير 💯",
+  "كل الشكر 🙌",
+  "مع التقدير 🤝",
+  "كل الاحترام 🙏",
+  "عمل جبار 💪",
+
+  // Insert "اعطيني ايفون 😂" 10 times here
+  "اعطيني ايفون 😂",
+  "اعطيني ايفون 😂",
+  "اعطيني ايفون 😂",
+  "اعطيني ايفون 😂",
+  "اعطيني ايفون 😂",
+  "اعطيني ايفون 😂",
+  "اعطيني ايفون 😂",
+  "اعطيني ايفون 😂",
+  "اعطيني ايفون 😂",
+  "اعطيني ايفون 😂",
+
+  // Continue with the rest of the original messages
+  "رائع جدا 🔥",
+  "انت الافضل 🏆",
+  "💫 مبروك",
+  "💝 شكرا بحجم السماء 🌌",
+  "يا غالي 💎",
+  "🌹🌹🌹",
+  "❤️❤️❤️",
+  "فخورون بك 🎉",
+  "الى الامام دائما 🚀",
+  "ممتن لك جدا 🙏",
+  "دمت مبدعاً 🎨",
+  "كل الدعم لك 🤗",
+  "تسلم إيدك 👏",
+  "جزاك الله عنا الخير 🤲",
+  "أنت نجمي المضيء ⭐",
+  "بالتوفيق دائما 🍀",
+  "دمت متألقاً 🌟",
+  "من القلب شكراً 💖",
+  "شكر و تقدير 🙌",
+  "كل الاحترام والتقدير 🤝",
+  "أنت مصدر إلهام 💡",
+  "أحسنت العمل 👌",
+  "أنت قدوة للجميع 🌟",
+  "بارك الله فيك 🤲",
+  "عظيم جداً 💪",
+  "مجهود رائع 👏",
+  "كل الحب و الامتنان ❤️",
+  "يا بطل 🦸‍♂️",
+  "نقدر لك جهدك 🙏",
+  "ممتنون لوجودك 💫",
+  "كل الشكر و التقدير 🙌",
+  "أنت الأفضل دوماً 🏅",
+  "ألف مبروك 🎊",
+  "أنت الفخر 🌟",
+  "تحية احترام 🙏",
+  "شكراً من القلب ❤️",
+  "دمت بخير 😊",
+  "عمل مميز 🌈",
+  "أنت نجم الساحة 🌟",
+  "يا بطل الأبطال 🏆",
+  "أبدعت 👏",
+  "دمت متألقاً دائما 🌟",
+  "شكر خاص لك 💌",
+  "كل الامتنان 🙏",
+  "أنت شخص رائع 🤩",
+  "شكرًا جزيلاً 💖",
+  "تستحق كل التقدير 🥇",
+  "شكراً على جهودك 👏",
+  "كل الحب والتقدير ❤️",
+  "ممتنون لك بشدة 💕",
+  "شكراً على كل شيء 🙏",
+  "أنت رمز العطاء 🎁",
+  "أنت نجمي المتلألئ ✨",
+  "دمت ودام عطاؤك 🌟",
+  "شكرًا على دعمك 🤝",
+  "لك كل الشكر 🙌",
+  "شكرًا لك من القلب ❤️",
+  "شكرًا على مجهودك 💪",
+  "شكراً على العمل الرائع 👏",
+  "دمت في القمة 🏔️",
+  "شكرًا لكونك مميزاً 🌟",
+  "كل الفخر بك 🎖️",
+  "تستاهل كل خير 💯",
+  "كل الاحترام لك 🙏",
+  "شكرًا على كل جهودك 👏",
+  "أنت مبدع بحق 🎨",
+  "كل التقدير والاحترام 🤝",
+  "شكراً لتفانيك 💖",
+  "شكراً لعملك الدؤوب 💪",
+  "لك مني كل الشكر 🙏",
+  "أنت رائع جداً 🌟",
+  "شكرًا على تعاونك 🤝",
+  "دمت فخوراً بنفسك 💪",
+  "أنت رمز النجاح 🏆",
+  "كل الحب و الشكر ❤️",
+  "شكراً لك يا غالي 💎",
+  "أحسنت صنعاً 👏",
+  "شكراً على مساهمتك 🤗",
+  "شكرًا من القلب ❤️",
+  "كل الشكر على المجهود 👏",
+  "أنت محبوب ومقدر 💖",
+  "ألف شكر 🙏",
+  "دمت متفوقاً 🌟",
+  "شكرًا لدعمك الدائم 🤝",
+  "يا نجم السماء 🌟",
+  "أنت متميز 💫",
+  "شكراً لعملك الرائع 👏",
+  "تحية شكر 🙌",
+  "دمت بخير وعافية 😊",
+  "شكراً على كل الدعم 🤗",
+  "شكرًا على تفانيك 💖",
+  "أنت الأفضل فينا 🏅",
+  "لك مني كل الامتنان 🙏",
+  "شكرًا على حبك واهتمامك ❤️",
+  "كل التحية والتقدير 🤝",
+  "أنت رائع بلا حدود 🌈",
+  "شكراً لك من أعماق القلب 💖"
+];
+
+
+
+  const msg = messages[Math.floor(Math.random() * messages.length)];
+
+  const span = document.createElement('span');
+  span.className = 'thank-word';
+  span.textContent = msg;
+
+  // Random position
+  const top = Math.random() * 80;   // %
+  const left = Math.random() * 80;  // %
+
+  span.style.top = `${top}vh`;
+  span.style.left = `${left}vw`;
+
+  // Append to body
+  document.body.appendChild(span);
+
+  // Remove after animation completes
+  setTimeout(() => {
+    span.remove();
+  }, 5000); // matches animation duration
+}
+
+  </script>
+</body>
+</html>
